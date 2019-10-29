@@ -47,9 +47,11 @@ public:
 				break;
 
 			case 0x2000:
+				// Push current pc to stack
+				// goto NNN address
 				stack[sp] = pc;
-                ++sp;
-                pc = opcode & 0x0FFF;
+                		++sp;
+                		pc = opcode & 0x0FFF;
 				break;
 
             case 0x5000:
