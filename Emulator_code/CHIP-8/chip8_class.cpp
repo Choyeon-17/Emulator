@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stack>
 #include <fstream>
+#include <vector>
 
 using namespace std;
 
@@ -9,6 +10,7 @@ using namespace std;
  * @date 2019-11-08-Fri
  * @brief
  * CHIP_8 클래스는 CHIP-8 시스템을 구현합니다.
+ * @details
  * opcode는 CPU 명령어입니다.
  * I는 사용자가 지정해준 인덱스 레지스터입니다.
  * pc는 0x000부터 0xFFF까지의 값을 가질 수 있는 프로그램 카운터입니다.
@@ -60,9 +62,7 @@ private:
 public:
 /**
  * @brief
- * 68-73: CHIP_8 클래스의 멤버를 초기화합니다.
- * 75-76: memory[0]-memory[79]에 fontset[]의 글꼴 세트를 로드합니다.
- * 78-87: game.txt의 정보를 memory[0x200]번지에서부터 로드합니다.
+ * CHIP_8(): CHIP_8의 멤버를 초기화, memory[0-79]에 글꼴 세트를 로드, game.txt 파일을 memory[0x200-]부터 로드
  */
     CHIP_8()
         :opcode(0x200), I(0), pc(0), delay_timer(0), sound_timer(0) {
@@ -74,7 +74,17 @@ public:
 
         for (int i = 0; i < 80; i++)
             memory[i] = fontset[i];
-        
+
+/**
+ * @brief
+ * line 88-89: 파일 읽기 준비
+ * line 92: 위치 지정자를 파일 끝으로 옮깁니다.
+ * line 93: 그 위치를 읽습니다.(파일의 크기)
+ * line 94: 그 크기의 문자열을 할당합니다.
+ * line 95: 위치 지정자를 다시 파일 맨 앞으로 옮깁니다.
+ * line 96: 파일 전체 내용을 읽어서 문자열에 저장합니다.
+ * line 97: memory[0x200-]부터 파일 전체 내용을 복사합니다.
+ */
         ifstream game("game.txt");
         string buffer;
 
@@ -87,30 +97,44 @@ public:
             memcpy(memory[0x200], buffer, size);
         }
     }
-    /**
-     * @brief
-     * pc가 memory로부터 다음에 실행할 명령어를 인출합니다.
-     * @return uint16_t 
-     */
-    uint16_t Fetch_opcode()
-    {
+
+/**
+ * @brief
+ * pc가 memory로부터 다음에 실행할 명령어를 인출합니다.
+ * @return uint16_t : opcode
+ */
+    uint16_t Fetch_opcode() {
         return memory[pc] << 8 | memory[pc + 1];
     }
+
 /**
- * @brief Decode_opcode() 함수는 명령어를 해독 및 실행합니다.
+ * @brief 
+ * 명령어를 해독 및 실행합니다.
  * @return void형 함수이므로 반환 값을 갖지 않습니다.
  * @param opcode 
  */
     void Decode_opcode(uint16_t opcode);
+
 /**
- * @brief Update_timers() 함수는 타이머를 갱신합니다.
- * @return void형 함수이므로 반환 값을 갖지 않습니다.
+ * @brief 
+ * 타이머를 갱신합니다.
  * @param delay_timer 
  * @param sound_timer 
  */
-    void Update_timers(uint8_t delay_timer, uint8_t sound_timer);
+    void Update_timers(uint8_t delay_timer, uint8_t sound_timer) {
+        if (delay_timer > 0)
+            delay_timer--;
+        
+        if (sound_timer > 0) {
+            if (sound_timer == 1)
+                cout << "BEEP!" << endl;
+            sound_timer--;
+        }
+    }
+
 /**
- * @brief emulate_cycle() 함수는 명령어 인출, 명령어 해독 및 실행, 타이머 갱신을 한 번 실행합니다.
+ * @brief
+ * 명령어 인출, 명령어 해독 및 실행, 타이머 갱신을 한 번 실행합니다.
  */
     void emulate_cycle() {
         opcode = Fetch_opcode();
