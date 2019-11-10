@@ -87,6 +87,15 @@ public:
             memcpy(memory[0x200], buffer, size);
         }
     }
+    /**
+     * @brief
+     * pc가 memory로부터 다음에 실행할 명령어를 인출합니다.
+     * @return uint16_t 
+     */
+    uint16_t Fetch_opcode()
+    {
+        return memory[pc] << 8 | memory[pc + 1];
+    }
 /**
  * @brief Decode_opcode() 함수는 명령어를 해독 및 실행합니다.
  * @return void형 함수이므로 반환 값을 갖지 않습니다.
@@ -101,10 +110,10 @@ public:
  */
     void Update_timers(uint8_t delay_timer, uint8_t sound_timer);
 /**
- * @brief emulate_cycle() 함수는 명령어 인출(line 107), 명령어 해독 및 실행, 타이머 갱신을 한 번 실행합니다.
+ * @brief emulate_cycle() 함수는 명령어 인출, 명령어 해독 및 실행, 타이머 갱신을 한 번 실행합니다.
  */
     void emulate_cycle() {
-        opcode = memory[pc] << 8 | memory[pc + 1];
+        opcode = Fetch_opcode();
 
         Decode_opcode(opcode);
 
