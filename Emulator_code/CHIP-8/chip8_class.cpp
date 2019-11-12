@@ -110,12 +110,6 @@ public:
 		return memory[pc] << 8 | memory[pc + 1];
 	}
 
-	uint8_t key();
-
-	uint8_t get_delay();
-
-	uint8_t get_key();
-
 	/**
    * @brief
    * 명령어를 해독 및 실행합니다.
@@ -294,14 +288,14 @@ CHIP_8::Decode_opcode(uint16_t opcode)
 		case 0xE000: {
 			switch (opcode & 0x00FF) {
 				case 0x009E: {
-					if (key() == V[X])
+					if (key[V[X]] == 0)
 						pc += 4;
 					else
 						pc += 2;
 					break;
 				}
 				case 0x00A1: {
-					if (key() != V[X])
+					if (key[V[X]] != 0)
 						pc += 4;
 					else
 						pc += 2;
@@ -312,10 +306,10 @@ CHIP_8::Decode_opcode(uint16_t opcode)
 		case 0xF000: {
 			switch (opcode & 0x00FF) {
 				case 0x0007:
-					V[X] = get_delay();
+					V[X] = delay_timer;
 					break;
-				case 0x000A:
-					V[X] = get_key();
+				case 0x000A: 
+					V[X] = pressed_key();
 					break;
 				case 0x0015:
 					delay_timer = V[X];
@@ -332,12 +326,23 @@ CHIP_8::Decode_opcode(uint16_t opcode)
 					break;
 				}
 				case 0x0029:
+					V[X] = I;
 					break;
 				case 0x0033:
+					memory[I] = V[X] / 100;
+					memory[I + 1] = (V[X] / 10) % 10;
+					memory[I + 2] = V[X] % 10;
 					break;
 				case 0x0055:
+					for (int i = 0; i <= X; i++)
+						memory[I++] = V[i];
+					I--;
+					break;
 					break;
 				case 0x0065:
+					for (int i = 0; i <= X; i++)
+						V[i] = memory[I++];
+					I--;
 					break;
 			}
 			pc += 2;
