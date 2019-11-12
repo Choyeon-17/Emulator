@@ -1,7 +1,6 @@
 #include <fstream>
 #include <iostream>
 #include <stack>
-#include <vector>
 
 using namespace std;
 
@@ -63,10 +62,11 @@ private:
 	};
 
 public:
+	bool draw_flag;
 	/**
    * @brief
-   * CHIP_8(): CHIP_8의 멤버를 초기화, memory[0-79]에 글꼴 세트를 로드, game.txt
-   * 파일을 memory[0x200-]부터 로드
+   * CHIP_8(): CHIP_8의 멤버를 초기화, memory[0-79]에 글꼴 세트를 로드,
+   * game.txt 파일을 memory[0x200-]부터 로드
    */
 	CHIP_8() : opcode(0), I(0), pc(0x200), delay_timer(0), sound_timer(0) {
 		memset(memory, 0, 4096);
@@ -78,16 +78,6 @@ public:
 		for (int i = 0; i < 80; i++)
 			memory[i] = fontset[i];
 
-		/**
-     * @brief
-     * line 91-92: 파일 읽기 준비
-     * line 95: 위치 지정자를 파일 끝으로 옮깁니다.
-     * line 96: 그 위치를 읽습니다.(파일의 크기)
-     * line 97: 그 크기의 문자열을 할당합니다.
-     * line 98: 위치 지정자를 다시 파일 맨 앞으로 옮깁니다.
-     * line 99: 파일 전체 내용을 읽어서 문자열에 저장합니다.
-     * line 100: memory[0x200-]부터 파일 전체 내용을 복사합니다.
-     */
 		ifstream game("game.txt");
 		string buffer;
 
@@ -150,6 +140,7 @@ public:
 
 CHIP_8::Decode_opcode(uint16_t opcode)
 {
+	draw_flag = false;
 	int X = (opcode & 0x0F00) >> 8;
 	int Y = (opcode & 0x00F0) >> 4;
 
@@ -174,23 +165,20 @@ CHIP_8::Decode_opcode(uint16_t opcode)
 			pc = opcode & 0x0FFF;
 			break;
 		case 0x3000: {
+			pc += 2;
 			if (V[X] == opcode & 0x00FF)
-				pc += 4;
-			else
 				pc += 2;
 			break;
 		}
 		case 0x4000: {
+			pc += 2;
 			if (V[X] != opcode & 0x00FF)
-				pc += 4;
-			else
 				pc += 2;
 			break;
 		}
 		case 0x5000: {
+			pc += 2;
 			if (V[X] == V[Y])
-				pc += 4;
-			else
 				pc += 2;
 			break;
 		}
@@ -251,9 +239,8 @@ CHIP_8::Decode_opcode(uint16_t opcode)
 			break;
 		}
 		case 0x9000: {
+			pc += 2;
 			if (V[X] != V[Y])
-				pc += 4;
-			else
 				pc += 2;
 			break;
 		}
@@ -269,35 +256,31 @@ CHIP_8::Decode_opcode(uint16_t opcode)
 			pc += 2;
 			break;
 		case 0xD000: {
-			unsigned short height = opcode & 0x000F;
-    		unsigned short pixel;
-    		V[0xF] = 0;
+			uint16_t height = opcode & 0x000F;
+			uint8_t pixels;
+			V[0xF] = 0;
 
-    		for (int yline = 0; yline < height; yline++) {
-        		pixel = memory[I + yline];
-        		
-				for (int xline = 0; xline < 8; xline++) {
-            		if ((pixel & (0x80 >> xline)) != 0) {
-                		if(gfx[(x + xline + ((y + yline) * 64))] == 1)
-                    		V[0xF] = 1;
-                	gfx[x + xline + ((y + yline) * 64)] ^= 1;
-            		}
-        		}
-    		}
+			for (int yline = 0; yline < height; yline++) {
+				pixels = memory[I + yline];
+				gfx[V[Y] + yline][V[X]] ^= pixels;
+			}
+
+			I += 5;
+			draw_flag = true;
+			pc += 2;
+			break;
 		}
 		case 0xE000: {
 			switch (opcode & 0x00FF) {
 				case 0x009E: {
+					pc += 2;
 					if (key[V[X]] == 0)
-						pc += 4;
-					else
 						pc += 2;
 					break;
 				}
 				case 0x00A1: {
+					pc += 2;
 					if (key[V[X]] != 0)
-						pc += 4;
-					else
 						pc += 2;
 					break;
 				}
