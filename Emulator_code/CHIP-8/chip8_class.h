@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <fstream>
 #include <stack>
@@ -32,7 +33,7 @@ using namespace std;
 
 class Chip8 {
 private:
-    uint16_t opcode;
+	uint16_t opcode;
 	uint16_t I;
 	uint16_t pc;
 	uint8_t delay_timer;
@@ -66,11 +67,11 @@ private:
 	Chip8() { }
 
 public:
-    bool draw_flag;
+	bool draw_flag;
 
-	Chip8(char * file_path);
-    void Fetch();
-    void Decode();
-    void Delay_and_sound_timers();
-    void Emulate_cycle();
-}
+	Chip8(char* file_path);
+	void Fetch();
+	void Decode();
+	void Delay_and_sound_timers();
+	void Emulate_cycle();
+};
