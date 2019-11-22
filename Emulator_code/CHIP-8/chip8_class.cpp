@@ -8,7 +8,7 @@ Chip8::Chip8(char* file_path) : opcode(0), I(0), pc(0x200), delay_timer(0), soun
 	memset(memory, 0, sizeof(memory));
 	memset(reg, 0, sizeof(reg));
 	memset(gfx, 0, sizeof(gfx));
-	memset(stack, 0, sizeof(stack));
+	// memset(stack, 0, sizeof(stack));
 	memcpy(memory, fontset, sizeof(fontset));
 
 	ifstream rom(file_path);
@@ -17,7 +17,7 @@ Chip8::Chip8(char* file_path) : opcode(0), I(0), pc(0x200), delay_timer(0), soun
 		rom.seekg(0, ios::end);
 		int size = rom.tellg();
 		rom.seekg(0, ios::beg);
-		rom.read(&memory[0x200], size);
+		rom.read(reinterpret_cast<char*>(&memory[0x200]), size);
 	}
 	else
 		cout << "Failed to read file!" << endl;
@@ -75,8 +75,8 @@ void Chip8::Decode() {
 		pc += 2;
 		break;
 	case 0x00EE:
-		pc = stack->top();
-		stack->pop();
+		pc = _stack.top();
+		_stack.pop();
 		pc += 2;
 		break;
 	}
@@ -86,19 +86,19 @@ void Chip8::Decode() {
 		break;
 
 	case 0x2000:
-		stack->push(pc);
+		_stack.push(pc);
 		pc = opcode & 0x0FFF;
 		break;
 
 	case 0x3000:
 		pc += 2;
-		if (reg[x] == opcode & 0x00FF)
+		if (reg[x] == (opcode & 0x00FF))
 			pc += 2;
 		break;
 
 	case 0x4000:
 		pc += 2;
-		if (reg[x] != opcode & 0x00FF)
+		if (reg[x] != (opcode & 0x00FF))
 			pc += 2;
 		break;
 

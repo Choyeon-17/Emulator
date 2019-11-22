@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <fstream>
+#include <cstring>
 #include <stack>
 
 using namespace std;
@@ -43,7 +44,7 @@ private:
 	uint8_t memory[4096];
 	uint8_t reg[16];
 	uint8_t gfx[8][32];
-	stack<uint16_t> stack[16];
+	stack<uint16_t> _stack;
 
 	const uint8_t fontset[80] = {
 		0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
